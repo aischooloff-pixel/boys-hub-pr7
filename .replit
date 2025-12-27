@@ -38,3 +38,8 @@ outputType = "webview"
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[userenv]
+
+[userenv.shared]
+GITHUB_TOKEN = "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"
