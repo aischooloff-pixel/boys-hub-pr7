@@ -12,6 +12,7 @@ import {
 import { User } from '@/types';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useTelegram } from '@/hooks/use-telegram';
 
 interface ProfileModalProps {
   user: User;
@@ -19,16 +20,26 @@ interface ProfileModalProps {
   onClose: () => void;
 }
 
-export function ProfileModal({ user, isOpen, onClose }: ProfileModalProps) {
+export function ProfileModal({ user: defaultUser, isOpen, onClose }: ProfileModalProps) {
+  const { user: tgUser } = useTelegram();
   const [activeTab, setActiveTab] = useState<'profile' | 'articles' | 'favorites' | 'activity'>('profile');
 
   if (!isOpen) return null;
+
+  const displayUser = tgUser ? {
+    ...defaultUser,
+    first_name: tgUser.first_name,
+    last_name: tgUser.last_name || '',
+    username: tgUser.username || defaultUser.username,
+    avatar_url: tgUser.photo_url || defaultUser.avatar_url,
+    is_premium: tgUser.is_premium || defaultUser.is_premium
+  } : defaultUser;
 
   const menuItems = [
     {
       icon: FileText,
       label: 'Мои статьи',
-      value: user.articles_count,
+      value: displayUser.articles_count,
       tab: 'articles' as const,
     },
     {
@@ -83,11 +94,11 @@ export function ProfileModal({ user, isOpen, onClose }: ProfileModalProps) {
           <div className="mb-6 flex flex-col items-center text-center">
             <div className="relative mb-4">
               <img
-                src={user.avatar_url}
-                alt={user.first_name}
+                src={displayUser.avatar_url}
+                alt={displayUser.first_name}
                 className="h-20 w-20 rounded-full border-2 border-border"
               />
-              {user.is_premium && (
+              {displayUser.is_premium && (
                 <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-background">
                   <Crown className="h-3 w-3" />
                 </div>
@@ -95,13 +106,13 @@ export function ProfileModal({ user, isOpen, onClose }: ProfileModalProps) {
             </div>
 
             <h2 className="mb-1 font-heading text-xl font-semibold">
-              {user.first_name} {user.last_name}
+              {displayUser.first_name} {displayUser.last_name}
             </h2>
-            <p className="mb-3 text-sm text-muted-foreground">@{user.username}</p>
+            <p className="mb-3 text-sm text-muted-foreground">@{displayUser.username}</p>
 
             <div className="flex items-center gap-1 rounded-full bg-muted px-3 py-1.5">
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">{user.reputation}</span>
+              <span className="text-sm font-medium">{displayUser.reputation}</span>
               <span className="text-sm text-muted-foreground">репутации</span>
             </div>
           </div>
@@ -131,7 +142,7 @@ export function ProfileModal({ user, isOpen, onClose }: ProfileModalProps) {
           </div>
 
           {/* Premium CTA */}
-          {!user.is_premium && (
+          {!displayUser.is_premium && (
             <div className="mt-6">
               <Button className="w-full gap-2" size="lg">
                 <Crown className="h-4 w-4" />
